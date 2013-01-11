@@ -1,7 +1,8 @@
 canvas#c {
-  background-color: transparent;
+  border: 1px solid black;
+  box-shadow: 4px 4px 4px #444;
+  background: transparent url(img/pw_maze_black.png) repeat;
 }
-
-body {
-  background-color: #def;
+.hidden {
+  display:none;
 }
