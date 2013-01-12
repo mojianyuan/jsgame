@@ -30,7 +30,10 @@ var Key = {
 };
 
 //class
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 var Unit = function(name, opts, game) {
+    if (!name) return;
     var elem = document.getElementById(name);
     this.initialize(elem, opts);
     this.width = this.getWidth();
@@ -39,8 +42,8 @@ var Unit = function(name, opts, game) {
   };
 Unit.prototype = new fabric.Image({width:0,height:0});
 Unit.prototype.constructor = fabric.Image;
-Unit.prototype.move = function(dir) {
-  var d = {'duration': 1};
+Unit.prototype.move = function(dir, speed) {
+  var d = {'duration': speed || 1};
   var step = 2;
   var inc = '+'+step;
   var dec = '-'+step;
@@ -59,13 +62,8 @@ Unit.prototype.move = function(dir) {
     break;
   }
 };
-Unit.prototype.update = function() {
-  if (Key.isDown(Key.UP)) this.move('up');
-  if (Key.isDown(Key.LEFT)) this.move('left');
-  if (Key.isDown(Key.DOWN)) this.move('down');
-  if (Key.isDown(Key.RIGHT)) this.move('right');
-  if (Key.isDown(Key.SPACE)) this.pop();
 
+Unit.prototype.update = function() {
   if (this.get('top') < 0) this.set('top', this.game.height);
   if (this.get('top') > this.game.height) this.set('top', 0);
   if (this.get('left') < 0) this.set('left', this.game.width);
@@ -78,6 +76,29 @@ Unit.prototype.pop = function() {
   setTimeout(function(){that.scale(1)},1);
 };
 
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+
+var Player = function(name, opts, game) {
+  if (!name) return;
+  this.constructor(name,opts,game);
+};
+Player.prototype = new Unit();
+Player.prototype.constructor =  Unit;
+Player.prototype.update = function() {
+  // super
+  Unit.prototype.update.call(this);
+
+  //override
+  if (Key.isDown(Key.UP)) this.move('up');
+  if (Key.isDown(Key.LEFT)) this.move('left');
+  if (Key.isDown(Key.DOWN)) this.move('down');
+  if (Key.isDown(Key.RIGHT)) this.move('right');
+  if (Key.isDown(Key.SPACE)) this.pop();
+};
+
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 var Game = function(id) {
     this.canvas = new fabric.Canvas(id, {
       intercative: false,
@@ -92,15 +113,15 @@ Game.prototype.init = function() {
     left: this.width/2,
     top: this.height/2
   };
-  this.unit = new Unit('robot1', opts, this);
-  this.canvas.add(this.unit);
+  this.player = new Player('robot1', opts, this);
+  this.canvas.add(this.player);
 };
 Game.prototype.draw = function() {
   this.canvas.renderAll();
 };
 Game.prototype.logic = function() {
   //no logic
-  this.unit.update();
+  this.player.update();
 };
 
 Game.prototype.run = function() {
