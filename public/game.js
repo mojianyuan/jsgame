@@ -29,7 +29,6 @@ var Key = {
   }
 };
 
-//class
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 var Unit = function(name, opts, game) {
@@ -42,23 +41,23 @@ var Unit = function(name, opts, game) {
   };
 Unit.prototype = new fabric.Image({width:0,height:0});
 Unit.prototype.constructor = fabric.Image;
-Unit.prototype.move = function(dir, speed) {
-  var d = {'duration': speed || 1};
-  var step = 2;
+Unit.prototype.move = function(dir, step, duration) {
+  var opt = {'duration': duration || 1};
+  step = step || 2;
   var inc = '+'+step;
   var dec = '-'+step;
   switch(dir.toLowerCase()) {
   case 'up':
-    this.animate('top', dec, d);
+    this.animate('top', dec, opt);
     break;
   case 'down':
-    this.animate('top', inc, d);
+    this.animate('top', inc, opt);
     break;
   case 'left':
-    this.animate('left', dec, d);
+    this.animate('left', dec, opt);
     break;
   case 'right':
-    this.animate('left', inc, d);
+    this.animate('left', inc, opt);
     break;
   }
 };
@@ -70,15 +69,44 @@ Unit.prototype.update = function() {
   if (this.get('left') > this.game.width) this.set('left', 0);
 };
 
-Unit.prototype.pop = function() {
+Unit.prototype.pop = function(to,scale) {
   var that = this;
-  this.scale(1.2);
-  setTimeout(function(){that.scale(1)},1);
+  to = to || 1;
+  scale = scale || 1.2; 
+  this.scale(scale);
+  setTimeout(function(){that.scale(1)},to);
 };
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
+var Star = function(name,opts,game){
+  if (!name) return;
+  this.constructor(name,opts,game);
+  this.popTime = Util.random(60,240);
+  this.updateTime = 0;
+};
+Star.prototype = new Unit();
+Star.prototype.constructor = Unit;
+Star.prototype.update = function() {
+  // super
+  this.constructor.prototype.update.call(this);
+  //Unit.prototype.update.call(this);
+  // override
+  this.updateTime += 1;
+  if (this.updateTime >= this.popTime) {
+    this.updateTime = 0;
+    this.pop();
+  }
+  var dir = ['up','down','left','right'][Util.random(0,4)];
+  this.move(dir,5,200);
+};
+Star.prototype.pop = function() {
+  this.constructor.prototype.pop.call(this, 300, 0.7);
+  //Unit.prototype.pop.call(this, 300, 2);
+};
 
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 var Player = function(name, opts, game) {
   if (!name) return;
   this.constructor(name,opts,game);
@@ -87,8 +115,8 @@ Player.prototype = new Unit();
 Player.prototype.constructor =  Unit;
 Player.prototype.update = function() {
   // super
-  Unit.prototype.update.call(this);
-
+  //Unit.prototype.update.call(this);
+  this.constructor.prototype.update.call(this);
   //override
   if (Key.isDown(Key.UP)) this.move('up');
   if (Key.isDown(Key.LEFT)) this.move('left');
@@ -109,6 +137,16 @@ var Game = function(id) {
     this.width = this.canvas.getWidth();
   };
 Game.prototype.init = function() {
+  // stars
+  this.stars = [];
+  for (var i=0;i<50;i++){
+    var opts = {left:Util.random(0,this.width),top:Util.random(0,this.height)};
+    var star = new Star('star1',opts,this);
+    this.canvas.add(star);
+    this.stars.push(star);
+  }
+
+  //player
   var opts = {
     left: this.width/2,
     top: this.height/2
@@ -120,8 +158,8 @@ Game.prototype.draw = function() {
   this.canvas.renderAll();
 };
 Game.prototype.logic = function() {
-  //no logic
   this.player.update();
+  for(var i in this.stars)  {this.stars[i].update();}
 };
 
 Game.prototype.run = function() {
