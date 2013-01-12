@@ -15,6 +15,7 @@ var Key = {
   UP: 38,
   RIGHT: 39,
   DOWN: 40,
+  SPACE:32,
   isDown: function(keyCode) {
     return this._pressed[keyCode];
   },
@@ -29,8 +30,12 @@ var Key = {
 };
 
 //class
-var Unit = function(opts) {
-    this.initialize(document.getElementById('robot', opts));
+var Unit = function(name, opts, game) {
+    var elem = document.getElementById(name);
+    this.initialize(elem, opts);
+    this.width = this.getWidth();
+    this.height = this.getHeight();
+    this.game = game;
   };
 Unit.prototype = new fabric.Image({width:0,height:0});
 Unit.prototype.constructor = fabric.Image;
@@ -59,6 +64,18 @@ Unit.prototype.update = function() {
   if (Key.isDown(Key.LEFT)) this.move('left');
   if (Key.isDown(Key.DOWN)) this.move('down');
   if (Key.isDown(Key.RIGHT)) this.move('right');
+  if (Key.isDown(Key.SPACE)) this.pop();
+
+  if (this.get('top') < 0) this.set('top', this.game.height);
+  if (this.get('top') > this.game.height) this.set('top', 0);
+  if (this.get('left') < 0) this.set('left', this.game.width);
+  if (this.get('left') > this.game.width) this.set('left', 0);
+};
+
+Unit.prototype.pop = function() {
+  var that = this;
+  this.scale(1.2);
+  setTimeout(function(){that.scale(1)},1);
 };
 
 var Game = function(id) {
@@ -68,13 +85,14 @@ var Game = function(id) {
       selection: false
     });
     this.height = this.canvas.getHeight();
+    this.width = this.canvas.getWidth();
   };
 Game.prototype.init = function() {
   var opts = {
-    left: 100,
-    top: 100
+    left: this.width/2,
+    top: this.height/2
   };
-  this.unit = new Unit(opts);
+  this.unit = new Unit('robot1', opts, this);
   this.canvas.add(this.unit);
 };
 Game.prototype.draw = function() {
