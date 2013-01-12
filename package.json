@@ -1,0 +1,25 @@
+{
+  "name": "jsGame",
+  "version": "0.0.1",
+  "description": "html5 game test",
+  "main": "server.js",
+  "dependencies": {
+    "node-static": "~0.6.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/venil7/jsgame.git"
+  },
+  "keywords": [
+    "html5",
+    "canvas"
+  ],
+  "author": "darkruby",
+  "license": "BSD",
+  "readmeFilename": "README.md"
+}
