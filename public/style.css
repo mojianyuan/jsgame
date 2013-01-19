@@ -1,7 +1,7 @@
 canvas#c {
   border: 1px solid black;
   box-shadow: 4px 4px 4px #444;
-  background: transparent url(img/pw_maze_black.png) repeat;
+  background: transparent url(img/hexabump.png) repeat;
 }
 .hidden {
   display:none;
