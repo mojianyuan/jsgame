@@ -96,10 +96,14 @@
   };
 
   Unit.prototype.update = function() {
-    if(this.get('top') < 0) this.set('top', this.game.height);
-    if(this.get('top') > this.game.height) this.set('top', 0);
-    if(this.get('left') < 0) this.set('left', this.game.width);
-    if(this.get('left') > this.game.width) this.set('left', 0);
+      if(this.get('top') < 0) 
+        this.set('top', this.teleport ? this.game.height : 0);
+      if(this.get('top') > this.game.height) 
+        this.set('top', this.teleport ? 0 : this.game.height);
+      if(this.get('left') < 0) 
+        this.set('left', this.teleport ? this.game.width : 0);
+      if(this.get('left') > this.game.width) 
+        this.set('left', this.teleport ? 0 : this.game.width);
   };
 
   Unit.prototype.pop = function(to, scale) {
@@ -180,6 +184,7 @@
   var Player = function(name, opts, game) {
       if(!name) return;
       this.constructor(name, opts, game);
+      this.teleport = true;
     };
   Player.prototype = new Unit();
   Player.prototype.constructor = Unit;
@@ -248,9 +253,7 @@
   };
   Game.prototype.logic = function() {
     this.player.update();
-    for(var i in this.bullets) {
-      this.bullets[i].update();
-    }
+    fabric.util.array.invoke(this.bullets, "update");
   };
 
   Game.prototype.run = function() {
