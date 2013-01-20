@@ -35,14 +35,23 @@
         }
       }
       return result;
+    },
+    remove: function(a,from,to) {
+      var rest = a.slice((to || from) + 1 || a.length);
+      a.length = from < 0 ? a.length + from : from;
+      return a.push.apply(a, rest);
+    },
+    del: function(a, el) {
+      var index = a.indexOf(el);
+      return index >= 0 ? this.remove(a,index) : a;
     }
   };
   var Key = {
     _pressed: {},
-    LEFT: 37,
-    UP: 38,
-    RIGHT: 39,
-    DOWN: 40,
+    LEFT: 65,//37,
+    UP: 87,//38,
+    RIGHT: 68,//39,
+    DOWN: 83,//40,
     SPACE: 32,
     isDown: function(keyCode) {
       return this._pressed[keyCode];
@@ -150,16 +159,13 @@
     this.constructor.prototype.update.call(this);
     // Unit.prototype.update.call(this);
     // override
-    /*this.updateTime += 1;
-  if (this.updateTime >= this.popTime) {
-    this.updateTime = 0;
-    this.pop();
-  }
-  var dir = ['up','down','left','right'][Util.random(0,4)];
-  this.move(dir,5,200);*/
-
-    this.moveTo(
-    this.game.player.get('left'), this.game.player.get('top'), 8);
+    this.updateTime += 1;
+    if (this.updateTime >= this.popTime) {
+      this.updateTime = 0;
+      this.pop();
+    }
+    var dir = ['up','down','left','right'][Util.random(0,4)];
+    this.move(dir,5,200);
   };
   Star.prototype.pop = function() {
     this.constructor.prototype.pop.call(this, 300, 0.7);
@@ -173,10 +179,16 @@
     };
   Bullet.prototype = new Unit();
   Bullet.prototype.constructor = Unit;
-  Bullet.prototype.update = function(){
+  Bullet.prototype.update = function() {
     this.constructor.prototype.update.call(this);
-     var dest = this.dest;
-     this.moveTo(dest.x, dest.y, 0);
+    var dest = this.dest;
+    var x = this.get('left');
+    var y = this.get('top');
+    if(Math.abs(x - dest.x)<=2&&Math.abs(y - dest.y)<=2) {
+      this.fire("game:bullet:destination", this);
+    } else {
+      this.moveTo(dest.x, dest.y, 0);
+    }
   };
 
   //////////////////////////////////////////////////////////
@@ -200,8 +212,13 @@
     if(Key.isDown(Key.SPACE)) this.pop();
   };
 
-  var Monster = function(name, opts, game) {
-      if(!name) return;
+  var Monster = function(game) {
+      if(game) return;
+      var name = "monster";
+      var opts = {
+       top: Util.random(0, game.height),
+       left: Util.random(0, game.width)
+      };
       this.constructor(name, opts, game);
     };
   Monster.prototype = new Unit();
@@ -244,6 +261,10 @@
       };
       var dest = {x: obj.e.x, y:obj.e.y};
       var bullet = new Bullet(event, o, that);
+      bullet.on('game:bullet:destination',function(b) {
+        that.canvas.remove(b);
+        Util.del(that.bullets, b);
+      });
       that.bullets.push(bullet);
       that.canvas.add(bullet);
     });
@@ -253,7 +274,9 @@
   };
   Game.prototype.logic = function() {
     this.player.update();
-    fabric.util.array.invoke(this.bullets, "update");
+    _.each(this.bullets, function(b){
+      if (b) b.update();
+    });
   };
 
   Game.prototype.run = function() {
