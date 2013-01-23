@@ -1,7 +1,7 @@
 canvas#c {
   border: 1px solid black;
   box-shadow: 4px 4px 4px #444;
-  background: transparent url(img/hexabump.png) repeat;
+  background: transparent url(img/metal_texture_7_by_wojtar_stock.jpg) repeat;
 }
 .hidden {
   display:none;

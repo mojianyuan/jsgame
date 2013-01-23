@@ -1,4 +1,4 @@
-!(function(fabric, _) {
+!(function(fabric, _, io) {
 
   var fps = 1000 / 60;
   fabric.Object.prototype.selectable = false;
@@ -144,6 +144,10 @@
     that.handle = setTimeout(func, timeout);
   };
 
+  Unit.prototype.toObj = function(){
+    return this.toObject(['top','left']);
+  };
+
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   var Star = function(name, opts, game) {
@@ -244,13 +248,6 @@
     };
   Game.prototype.init = function() {
     var that = this;
-    //player
-    opts = {
-      left: this.width / 2,
-      top: this.height / 2
-    };
-    this.player = new Player('robot1', opts, this);
-    this.canvas.add(this.player);
 
     //events setup
     this.bullets = [];
@@ -268,10 +265,54 @@
       that.bullets.push(bullet);
       that.canvas.add(bullet);
     });
+
+    //register with sever
+    this.message("connecting..");
+    this.socket = io.connect();
+    this.socket.on('game:start', function(obj) {
+      that.player = new Player('robot1', obj, that);
+      that.canvas.add(that.player);
+
+      that.run();
+    });
+
+    this.socket.on('message', function(text) {
+      that.message(text);
+    });
+
+    this.socket.on('disconnect', function() {
+      that.message(text);
+      console.log('disconnected..');
+    });
   };
+  
+  Game.prototype.message = function(text, duration) {
+    text = text || "";
+    duration = duration || 5;//sec
+    var that = this;
+    if (this.msg) {
+      this.canvas.remove(this.msg);
+    }
+    this.msg = new fabric.Text(text, {
+      top: this.canvas.height / 2,
+      left: this.canvas.width / 2,
+      fontSize: 48,
+      fontFamily: 'Offside',
+      fill: '#FFFF33',
+      strokeStyle: 'solid black'
+    });
+    this.canvas.add(this.msg);
+    
+    setTimeout(function(){
+      that.canvas.remove(that.msg);
+    }, duration*1000);
+    
+  };
+
   Game.prototype.draw = function() {
     this.canvas.renderAll();
   };
+
   Game.prototype.logic = function() {
     this.player.update();
     _.each(this.bullets, function(b){
@@ -306,7 +347,8 @@
   // below is a consumer code
   var g = new Game('c');
   g.init();
-  g.run();
+  //g.run();
+  
   // end consumer code
 
-})(fabric, _); // dependencies passed;
+})(fabric, _, io); // dependencies passed;
